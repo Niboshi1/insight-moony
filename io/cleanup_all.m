@@ -1,4 +1,4 @@
-function cleanup_all(window, ptbOnly, logFID, stimLogFID)
+function cleanup_all(window, ptbOnly, logFID)
     try Screen('CloseAll'); catch, end
     try
         if ~ptbOnly
@@ -9,5 +9,5 @@ function cleanup_all(window, ptbOnly, logFID, stimLogFID)
     ListenChar(0);
     ShowCursor;
     if ~IsOctave; commandwindow; end
-    close_logs(logFID, stimLogFID);
+    close_logs(logFID);
 end

@@ -1,4 +1,4 @@
-function [promptTime, quitNow] = responseTrial(window, keyResponse, blockStartTime)
+function [promptTime, quitNow] = responseTrial(window, cfg, keyResponse, blockStartTime)
     quitNow = false;
 
     if keyResponse % if answered
@@ -13,7 +13,18 @@ function [promptTime, quitNow] = responseTrial(window, keyResponse, blockStartTi
         DrawFormattedText(window, resptext, 'center', 'center', .2);
         Screen('Flip', window);
         promptTime = GetSecs - blockStartTime;
-        WaitSecs(5);
+        
+        promptStartTime = GetSecs;
+        while (GetSecs - promptStartTime) < cfg.answerDuration
+            [keyIsDown, ~, keyCode] = KbCheck(-3);
+            if keyIsDown
+                temp = KbName(keyCode);
+                if isequal(temp(1), 'q')
+                    quitNow = true;
+                    return;
+                end
+            end
+        end
 
     else % if not able to solve
         % Prompt for key press TODO: decide on response key
@@ -22,13 +33,15 @@ function [promptTime, quitNow] = responseTrial(window, keyResponse, blockStartTi
         Screen('Flip', window);
         promptTime = GetSecs - blockStartTime;
         while true
-            [keyIsDown, ~, keyCode] = KbCheck;
+            [keyIsDown, ~, keyCode] = KbCheck(-3);
             if keyIsDown
-                if strcmpi(pressedKey, 'Q')
+                temp = KbName(keyCode);
+                if isempty(cfg.answerkey) || isequal(temp(1), cfg.answerkey)
+                    return;
+                elseif isequal(temp(1), 'q')
                     quitNow = true;
                     return;
                 end
-                break
             end
         end
     end

@@ -1,8 +1,5 @@
-function close_logs(logFID, stimLogFID)
+function close_logs(logFID)
     if ~isempty(logFID) && logFID > 0
         fclose(logFID);
-    end
-    if ~isempty(stimLogFID) && stimLogFID > 0
-        fclose(stimLogFID);
     end
 end

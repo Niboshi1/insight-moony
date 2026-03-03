@@ -3,7 +3,10 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 cfg = config(); % load config
 
-memorymode = prompt_memory_mode();
+taskmode = prompt_mode();
+if taskmode == 1
+    prompt_subset();
+end
 
 % ---- Session naming ----
 if cfg.ptbOnly
@@ -24,8 +27,6 @@ if cfg.ptbOnly
 else
     [tfun, sfun] = setup_ttl();
 end
-
-cfg.triggerkey = 't';
 
 % ---- PTB init ----
 PsychDefaultSetup(2);
@@ -48,10 +49,10 @@ end
 mooneyImages = load_mooney(window, cfg.stimDir, cfg.targetWidth);
 
 % ---- Logs init ----
-[logFID, stimLogFID] = init_logs(baseName);
+logFID = init_logs(baseName, taskmode);
 
 % ---- Instructions + trigger ----
-show_instructions_and_wait_trigger(window, memorymode, cfg.triggerkey, tfun);
+show_instructions_and_wait_trigger(window, taskmode, cfg.triggerkey, tfun);
 
 Screen('FillRect', window, 20); Screen('Flip', window);
 WaitSecs(3);
@@ -59,43 +60,74 @@ WaitSecs(3);
 blockStartTime = GetSecs;
 numImages = length(mooneyImages);
 
-for trial = 1:numImages
-    interval = cfg.minInterval + (cfg.maxInterval - cfg.minInterval) * rand;
 
-    % Mooney image prensentation
-    if cfg.ptbOnly
-        [stimulusPresentationTime, fixPresentationTime, responseTime, keyResponse] = MooneyTrialTest( ...
-            trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
-            cfg, el, dummymode, tfun, sfun, stimLogFID);
-    else
-        [stimulusPresentationTime, fixPresentationTime] = MooneyTrial( ...
-            trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
-            cfg, el, dummymode, tfun, sfun, stimLogFID);
-        Screen('FillRect', window, 20); Screen('Flip', window);
-        WaitSecs(0.1);
-        Eyelink('StopRecording');
-        WaitSecs(cfg.blankDuration - 0.1);
+% Check task mode
+if taskmode == 1
+    for trial = 1:numImages
+        % Mooney image prensentation
+        if cfg.ptbOnly
+            [fixPresentationTime, stimulusPresentationTime, responseTime, keyResponse] = MooneyTrialTest( ...
+                trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
+                cfg, el, dummymode, tfun, sfun);
+        else
+            [stimulusPresentationTime, fixPresentationTime] = MooneyTrial( ...
+                trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
+                cfg, el, dummymode, tfun, sfun);
+            Screen('FillRect', window, 20); Screen('Flip', window);
+            WaitSecs(0.1);
+            Eyelink('StopRecording');
+            WaitSecs(cfg.blankDuration - 0.1);
+        end
+        
+        % Response
+        [promptTime, quitNow] = ...
+            responseTrial(window, cfg, keyResponse, blockStartTime);
+
+        % Terminate
+        if quitNow
+            cleanup_all(window, cfg.ptbOnly, logFID);
+            return;
+        end
+
+        fprintf(logFID, '%d\t%.5f\t%.5f\t%.5f\t%.5f\t%d\n', ...
+            trial, fixPresentationTime, stimulusPresentationTime, ...
+            responseTime, promptTime, keyResponse);
     end
 
-    % Response
-    [promptTime, quitNow] = ...
-        responseTrial(window, keyResponse, blockStartTime);
+else
+    for trial = 1:numImages
+        % Mooney image prensentation
+        if cfg.ptbOnly
+            [fixPresentationTime, stimulusPresentationTime, responseTime, keyResponse] = MooneyMemoryTrialTest( ...
+                trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
+                cfg, el, dummymode, tfun, sfun);
+        else
+            [stimulusPresentationTime, fixPresentationTime] = MooneyTrial( ...
+                trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
+                cfg, el, dummymode, tfun, sfun);
+            Screen('FillRect', window, 20); Screen('Flip', window);
+            WaitSecs(0.1);
+            Eyelink('StopRecording');
+            WaitSecs(cfg.blankDuration - 0.1);
+        end
+        
+        % Response
+        [promptFamiliarTime, keyPressFamiliar, promptRecognitionTime, ...
+            keyPressRecognition, promptAnswerTime, quitNow] = ...
+            responseMemoryTrial(window, cfg, keyResponse, blockStartTime);
 
-    % Terminate
-    if quitNow
-        cleanup_all(window, cfg.ptbOnly, logFID, stimLogFID);
-        return;
+        % Terminate
+        if quitNow
+            cleanup_all(window, cfg.ptbOnly, logFID);
+            return;
+        end
+
+        fprintf(logFID, '%d\t%.5f\t%.5f\t%.5f\t%.5f\t%d\t%.5f\t%d\t%.5f\t%d\n', ...
+            trial, fixPresentationTime, stimulusPresentationTime, ...
+            responseTime, promptFamiliarTime, keyPressFamiliar, promptRecognitionTime, ...
+            keyPressRecognition, promptAnswerTime, keyResponse);
     end
 
-    % Show fixation
-    DrawFormattedText(window, '+', 'center', 'center', .2);
-    Screen('Flip', window);
-
-    fprintf(logFID, '%d\t%.3f\t%.3f\t%.3f\t%s\t%.3f\t%.3f\n', ...
-        trial, stimulusPresentationTime, fixPresentationTime, ...
-        responseTime, keyResponse, promptTime);
-
-    WaitSecs(interval);
 end
 
 % ---- End ----
@@ -107,6 +139,6 @@ if ~cfg.ptbOnly
     transferFile(window, cfg, el, dummymode, baseName);
 end
 
-cleanup_all(window, cfg.ptbOnly, logFID, stimLogFID);
+cleanup_all(window, cfg.ptbOnly, logFID);
 
 end

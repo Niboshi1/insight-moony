@@ -1,4 +1,4 @@
-function [fixPresentationTime, stimulusPresentationTime, responseTime, keyResponse] = MooneyTrialTest( ...
+function [fixPresentationTime, stimulusPresentationTime, responseTime, keyResponse] = MooneyMemoryTrialTest( ...
     trialno, n_trials, window, imageTexture, blockStartTime, cfg, el, dummymode, tfun, sfun)
 
     % Fixation show + in center
@@ -17,7 +17,7 @@ function [fixPresentationTime, stimulusPresentationTime, responseTime, keyRespon
     responseTime = Inf;
     keyResponse = false;
 
-    while (GetSecs - startTime) < cfg.imageDuration
+    while (GetSecs - startTime) < cfg.imageMemoryDuration
         if ~keyResponse
             [keyIsDown, secs, keyCode] = KbCheck(-3);
             if keyIsDown
@@ -26,6 +26,7 @@ function [fixPresentationTime, stimulusPresentationTime, responseTime, keyRespon
                     disp('Answered');
                     responseTime = GetSecs - blockStartTime;
                     keyResponse = true;
+                    KbReleaseWait(-3);
                 end
             end
         end

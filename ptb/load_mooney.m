@@ -13,4 +13,5 @@ function imageTextures = load_mooney(window, stimDir, targetWidth)
 
     % Report completion and return textures
     disp('Finished loading images.');
+    disp(numImages);
 end

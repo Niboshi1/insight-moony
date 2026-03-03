@@ -1,6 +1,6 @@
-function show_instructions_and_wait_trigger(window, memorymode, triggerkey, tfun)
+function show_instructions_and_wait_trigger(window, taskmode, triggerkey, tfun)
 
-if memorymode == 1
+if taskmode == 1
     instruct_text = ['You will see a series of images.\n\n' ...
                      'After each image, press a key if:\n\n' ...
                      'it is New (1), you are Unsure (2), or it is Old (3).'];

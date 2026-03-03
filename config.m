@@ -8,11 +8,13 @@ cfg.ptbOnly = true;     % <-- set true to run PTB task only (no EyeLink at all)
 cfg.stimDir = 'stimulus_set'; % directory of Mooney images relative to current directory
 
 % ---- Timing ----
-cfg.imageDuration    = 10; % maximum duration the image is shown
-cfg.blankDuration    = 4; % interval between Mooney image presentation and response
-cfg.responseDuration = 2.0; % 
-cfg.minInterval      = 1.5; % minimum inverval between each trial
-cfg.maxInterval      = 2.5; % maximum interval between each trial
+cfg.imageDuration    = 3; % maximum duration the image is shown
+cfg.blankDuration    = 1; % interval between Mooney image presentation and response
+cfg.answerDuration   = 5; % duration for vocal answering
+
+% ---- Timing 2 ----
+cfg.imageMemoryDuration = 8;
+
 
 % ---- Stim presentation ----
 cfg.targetWidth      = 1024;
@@ -22,5 +24,6 @@ cfg.wwidth = [];
 cfg.hheight = [];
 cfg.screenNumber = [];
 cfg.triggerkey = 't';
+cfg.answerkey = '1';
 
 end

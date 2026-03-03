@@ -1,4 +1,4 @@
-function imageTextures = load_moony(window, stimDir, targetWidth)
+function imageTextures = load_mooney(window, stimDir, targetWidth)
     files = dir(fullfile(stimDir, ['*.' 'jpg']));
     filenames = {files.name};
 

@@ -1,4 +1,4 @@
-function [stimulusPresentationTime, fixPresentationTime] = MoonyTrial( ...
+function [stimulusPresentationTime, fixPresentationTime] = MooneyTrial( ...
     trialno, n_trials, window, imageTexture, blockStartTime, cfg, el, dummymode, tfun, sfun, stimLogFID)
 
 Eyelink('Message', 'TRIALID %d', trialno);
@@ -21,7 +21,7 @@ Eyelink('Message', 'STIM_ONSET');
 WaitSecs(0.3);
 tfun();
 
-% Moony image on screen
+% Mooney image on screen
 Screen('DrawTexture', window, imageTexture);
 [~, trialStart] = Screen('Flip', window);
 Eyelink('Message', 'SCENE_ONSET');

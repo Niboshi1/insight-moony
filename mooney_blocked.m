@@ -1,7 +1,7 @@
-function moony_blocked()
+function mooney_blocked()
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
-cfg = config(); % <-- load config first
+cfg = config(); % load config
 
 memorymode = prompt_memory_mode();
 
@@ -44,8 +44,8 @@ else
     ListenChar(-1);
 end
 
-% ---- Moony images init ----
-moonyImages = load_moony(window, cfg.stimDir, cfg.targetWidth);
+% ---- Mooney images init ----
+mooneyImages = load_mooney(window, cfg.stimDir, cfg.targetWidth);
 
 % ---- Logs init ----
 [logFID, stimLogFID] = init_logs(baseName);
@@ -57,18 +57,19 @@ Screen('FillRect', window, 20); Screen('Flip', window);
 WaitSecs(3);
 
 blockStartTime = GetSecs;
-numImages = length(moonyImages);
+numImages = length(mooneyImages);
 
 for trial = 1:numImages
     interval = cfg.minInterval + (cfg.maxInterval - cfg.minInterval) * rand;
 
+    % Mooney image prensentation
     if cfg.ptbOnly
-        [stimulusPresentationTime, fixPresentationTime] = MoonyTrialTest( ...
-            trial, numImages, window, moonyImages{trial}, blockStartTime, ...
+        [stimulusPresentationTime, fixPresentationTime, responseTime, keyResponse] = MooneyTrialTest( ...
+            trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
             cfg, el, dummymode, tfun, sfun, stimLogFID);
     else
-        [stimulusPresentationTime, fixPresentationTime] = MoonyTrial( ...
-            trial, numImages, window, moonyImages{trial}, blockStartTime, ...
+        [stimulusPresentationTime, fixPresentationTime] = MooneyTrial( ...
+            trial, numImages, window, mooneyImages{trial}, blockStartTime, ...
             cfg, el, dummymode, tfun, sfun, stimLogFID);
         Screen('FillRect', window, 20); Screen('Flip', window);
         WaitSecs(0.1);
@@ -76,21 +77,23 @@ for trial = 1:numImages
         WaitSecs(cfg.blankDuration - 0.1);
     end
 
-    % Response (same either way)
-    [resp, responseTime, responseOnset, quitNow] = ...
-        get_response(window, memorymode, cfg.responseDuration, blockStartTime);
+    % Response
+    [promptTime, quitNow] = ...
+        responseTrial(window, keyResponse, blockStartTime);
 
+    % Terminate
     if quitNow
         cleanup_all(window, cfg.ptbOnly, logFID, stimLogFID);
         return;
     end
 
-    Screen('FillRect', window, 20);
+    % Show fixation
+    DrawFormattedText(window, '+', 'center', 'center', .2);
     Screen('Flip', window);
 
     fprintf(logFID, '%d\t%.3f\t%.3f\t%.3f\t%s\t%.3f\t%.3f\n', ...
         trial, stimulusPresentationTime, fixPresentationTime, ...
-        responseOnset, resp, responseTime);
+        responseTime, keyResponse, promptTime);
 
     WaitSecs(interval);
 end
@@ -106,18 +109,4 @@ end
 
 cleanup_all(window, cfg.ptbOnly, logFID, stimLogFID);
 
-end
-
-function cleanup_all(window, ptbOnly, logFID, stimLogFID)
-try Screen('CloseAll'); catch, end
-try
-    if ~ptbOnly
-        Eyelink('Shutdown');
-    end
-catch
-end
-ListenChar(0);
-ShowCursor;
-if ~IsOctave; commandwindow; end
-close_logs(logFID, stimLogFID);
 end
